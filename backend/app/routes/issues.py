@@ -21,3 +21,12 @@ def extract_issue_fields(payload: IssueExtractionRequest):
         transcript=payload.transcript_reviewed,
         language=payload.language or "te-IN"
     )
+
+
+@router.get("/test-openai")
+def test_openai_connection():
+    """
+    Test OpenAI API key configuration and account quota status.
+    """
+    return extraction_service.test_openai_connection()
+

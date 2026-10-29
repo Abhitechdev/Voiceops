@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     GNANI_LANGUAGE_CODE: str = "te-IN"
 
     # Information Extraction Component
-    EXTRACTION_ENGINE: str = "rules"  # "rules", "gemini", "openai"
+    EXTRACTION_ENGINE: str = "openai"  # "openai", "rules", "gemini"
     GEMINI_API_KEY: str = ""
     OPENAI_API_KEY: str = ""
 
