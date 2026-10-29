@@ -10,6 +10,16 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# ZeroGPU compatibility handler for Hugging Face Spaces
+try:
+    import spaces
+
+    @spaces.GPU
+    def _zerogpu_probe():
+        return True
+except Exception:
+    pass
+
 from services.db import init_db, check_db_health, get_db, Ticket
 from services.transcription import (
     transcription_service,
