@@ -11,7 +11,9 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+# lib/ is a Python packaging build dir, but allow Next.js src/lib
+!frontend/src/lib/
+!frontend/src/lib/**
 lib64/
 parts/
 sdist/
