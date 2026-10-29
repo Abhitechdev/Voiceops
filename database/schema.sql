@@ -85,3 +85,4 @@ CREATE TRIGGER trg_update_ticket_timestamp
 BEFORE UPDATE ON tickets
 FOR EACH ROW
 EXECUTE FUNCTION update_ticket_timestamp();
+

@@ -169,9 +169,10 @@ class TicketService:
         note_text: str = "",
         author_name: str = "Field Technician",
         ticket_id: Any = None,
+        ticket_number: Any = None,
     ) -> TicketNote:
         """Append an internal technician observation note to the ticket."""
-        ident = ticket_id if ticket_id is not None else ticket_number_or_id
+        ident = ticket_id if ticket_id is not None else (ticket_number if ticket_number is not None else ticket_number_or_id)
         ticket = TicketService.get_ticket(db, str(ident))
         if not ticket:
             raise ValueError(f"Ticket '{ident}' not found.")

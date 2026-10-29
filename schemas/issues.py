@@ -99,3 +99,4 @@ class TicketUpdate(BaseModel):
 class TicketNoteCreate(BaseModel):
     note: str = Field(..., min_length=1)
     author_name: Optional[str] = "Field Technician"
+

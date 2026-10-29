@@ -96,3 +96,4 @@ In the Hugging Face Space web console, navigate to **Settings → Variables and 
 3. **`GNANI_API_ENDPOINT`**: `https://api.vachana.ai/stt/v3`
 4. **`GNANI_MOCK_MODE`**: `false` (or `true` for demo simulation)
 5. **`OPENAI_API_KEY`**: (Optional) OpenAI API key for LLM structured extraction
+
