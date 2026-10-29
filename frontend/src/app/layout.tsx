@@ -4,9 +4,9 @@ import Navbar from "@/components/Navbar";
 import ConsentNotice from "@/components/ConsentNotice";
 
 export const metadata: Metadata = {
-  title: "VoiceOps — Voice-Based Issue Reporting & Management",
+  title: "VoiceOps — High-Precision Operational Voice Dispatch & Issue Tracking",
   description:
-    "AI-powered voice-first operational workflow system converting spoken complaints into structured, trackable service tickets using Gnani AI speech recognition.",
+    "Engineering-grade voice dispatch system converting spoken Telugu and Indian English field reports into structured, triaged operational tickets via Gnani AI speech intelligence.",
 };
 
 export default function RootLayout({
@@ -15,20 +15,27 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className="antialiased min-h-screen flex flex-col bg-slate-50 text-slate-900">
+    <html lang="en" className="dark">
+      <body className="antialiased min-h-screen flex flex-col bg-zinc-950 text-zinc-100 font-sans selection:bg-emerald-500/20 selection:text-emerald-300">
         <ConsentNotice />
         <Navbar />
-        <main className="flex-1">{children}</main>
-        <footer className="border-t border-slate-200/80 bg-white/70 py-6 text-center text-xs text-slate-500">
-          <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-            <div>
-              <span className="font-semibold text-slate-700">VoiceOps</span> — Gnani AI Great Indian AI Internship Challenge 2026
+        <main className="flex-1 w-full deck-grid">{children}</main>
+        <footer className="border-t border-zinc-900 bg-zinc-950/80 backdrop-blur-md py-6 text-xs text-zinc-500">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center space-x-3">
+              <span className="font-mono font-semibold text-zinc-300 tracking-wider">VOICEOPS_OS</span>
+              <span className="text-zinc-700">|</span>
+              <span className="text-zinc-400">Gnani AI Indian Voice Intelligence Challenge 2026</span>
             </div>
-            <div className="flex items-center space-x-4 text-slate-400">
-              <span>Telugu & English Speech Recognition</span>
+            <div className="flex items-center space-x-4 font-mono text-[11px] text-zinc-500">
+              <span className="flex items-center space-x-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                <span>Telugu (te-IN) & English (en-IN)</span>
+              </span>
               <span>•</span>
-              <span>Test-Driven Operational Workflow</span>
+              <span>Deterministic Triage Pipeline</span>
+              <span>•</span>
+              <span>SLA Target Engine</span>
             </div>
           </div>
         </footer>

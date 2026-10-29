@@ -20,7 +20,9 @@ def test_transcription_unsupported_extension_rejected(client):
     assert response.status_code == 415
 
 
-def test_transcription_mock_service_success(client):
+def test_transcription_mock_service_success(client, monkeypatch):
+    from app.services.transcription import transcription_service
+    monkeypatch.setattr(transcription_service, "mock_mode", True)
     file_data = io.BytesIO(b"RIFF....WAVEfmt ....data....")
     response = client.post(
         "/api/transcriptions",

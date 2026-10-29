@@ -3,14 +3,23 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Shield, KeyRound, Mail, User, AlertCircle, ArrowRight, Loader2, Sparkles } from "lucide-react";
+import {
+  Shield,
+  KeyRound,
+  Mail,
+  User,
+  AlertCircle,
+  ArrowRight,
+  Loader2,
+  Sparkles,
+  Lock,
+} from "lucide-react";
 import { api } from "@/lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
   const [isRegister, setIsRegister] = useState<boolean>(false);
 
-  // Form states
   const [name, setName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -54,31 +63,33 @@ export default function LoginPage() {
 
   return (
     <div className="max-w-md mx-auto px-4 py-16">
-      <div className="glass-panel p-8 rounded-3xl border border-slate-200/90 shadow-xl space-y-6">
+      <div className="studio-panel-elevated p-8 rounded-3xl border border-zinc-800 shadow-2xl space-y-6">
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-2xl bg-brand-100 text-brand-600 flex items-center justify-center mx-auto shadow-xs">
-            <Shield className="w-6 h-6" />
+          <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-700 text-emerald-400 flex items-center justify-center mx-auto shadow-inner">
+            <Lock className="w-5 h-5" />
           </div>
-          <h1 className="text-xl font-bold text-slate-900">
-            {isRegister ? "Create VoiceOps Account" : "Staff & Reporter Portal"}
+          <h1 className="text-lg font-mono font-bold text-zinc-100 uppercase tracking-wider">
+            {isRegister ? "New Station Identity" : "Operations Portal Access"}
           </h1>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-zinc-400 font-sans">
             {isRegister
-              ? "Register to track and submit complaints under your name"
-              : "Sign in with administrator or reporter credentials"}
+              ? "Create authenticated reporter or technician credential"
+              : "Sign in with administrator or campus credentials"}
           </p>
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex bg-slate-100 p-1 rounded-xl text-xs font-semibold">
+        <div className="flex bg-zinc-950 p-1 rounded-xl border border-zinc-800 font-mono text-xs">
           <button
             type="button"
             onClick={() => {
               setIsRegister(false);
               setError(null);
             }}
-            className={`flex-1 py-1.5 rounded-lg transition ${
-              !isRegister ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500"
+            className={`flex-1 py-1.5 rounded-lg transition font-bold ${
+              !isRegister
+                ? "bg-zinc-800 text-emerald-400 border border-zinc-700 shadow-sm"
+                : "text-zinc-500 hover:text-zinc-300"
             }`}
           >
             Sign In
@@ -89,108 +100,126 @@ export default function LoginPage() {
               setIsRegister(true);
               setError(null);
             }}
-            className={`flex-1 py-1.5 rounded-lg transition ${
-              isRegister ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500"
+            className={`flex-1 py-1.5 rounded-lg transition font-bold ${
+              isRegister
+                ? "bg-zinc-800 text-emerald-400 border border-zinc-700 shadow-sm"
+                : "text-zinc-500 hover:text-zinc-300"
             }`}
           >
             Register
           </button>
         </div>
 
-        {/* One-Click Evaluation Demo Fillers */}
+        {/* Challenge Reviewer Quick Autofill Matrix */}
         {!isRegister && (
-          <div className="p-3 rounded-xl bg-indigo-50/70 border border-indigo-100 text-xs space-y-2">
-            <span className="text-[11px] font-bold text-indigo-900 flex items-center space-x-1">
-              <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
-              <span>Instant Evaluation Demo Credentials:</span>
-            </span>
+          <div className="p-3 bg-zinc-950 rounded-xl border border-zinc-800/80 space-y-2">
+            <div className="flex items-center justify-between text-[10px] font-mono text-zinc-400 uppercase">
+              <span className="flex items-center space-x-1">
+                <Sparkles className="w-3 h-3 text-emerald-400" />
+                <span>Reviewer Fast Credentials:</span>
+              </span>
+              <span>1-Click Test</span>
+            </div>
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
                 onClick={autofillAdmin}
-                className="p-2 bg-white hover:bg-indigo-50 border border-indigo-200 rounded-lg text-left transition"
+                className="text-left p-2 rounded-lg bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 text-[11px] font-mono transition group"
               >
-                <span className="font-bold text-indigo-700 block text-[11px]">IT Admin</span>
-                <span className="text-[10px] text-slate-500">admin@voiceops.internal</span>
+                <span className="text-zinc-300 font-bold block group-hover:text-emerald-400">
+                  Operations Admin
+                </span>
+                <span className="text-zinc-400 text-[10px] block">admin@voiceops</span>
               </button>
+
               <button
                 type="button"
                 onClick={autofillReporter}
-                className="p-2 bg-white hover:bg-indigo-50 border border-indigo-200 rounded-lg text-left transition"
+                className="text-left p-2 rounded-lg bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 text-[11px] font-mono transition group"
               >
-                <span className="font-bold text-indigo-700 block text-[11px]">Student Reporter</span>
-                <span className="text-[10px] text-slate-500">ravi@student.college.edu</span>
+                <span className="text-zinc-300 font-bold block group-hover:text-emerald-400">
+                  Campus Reporter
+                </span>
+                <span className="text-zinc-400 text-[10px] block">ravi@student</span>
               </button>
             </div>
           </div>
         )}
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+        <form onSubmit={handleSubmit} className="space-y-4 font-mono text-xs">
           {isRegister && (
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">Full Name</label>
+              <label className="block text-zinc-400 uppercase text-[10px] mb-1">
+                Full Name
+              </label>
               <div className="relative">
-                <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
                 <input
                   type="text"
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Priya Sharma"
-                  className="w-full bg-white border border-slate-300 rounded-xl pl-9 pr-3 py-2.5 focus:outline-hidden focus:ring-2 focus:ring-brand-500"
+                  placeholder="e.g. Ramesh Reddy"
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-9 pr-3 py-2.5 text-zinc-100 focus:outline-hidden focus:border-emerald-500"
                 />
               </div>
             </div>
           )}
 
           <div>
-            <label className="block font-semibold text-slate-700 mb-1">Email Address</label>
+            <label className="block text-zinc-400 uppercase text-[10px] mb-1">
+              Email Address
+            </label>
             <div className="relative">
-              <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="name@college.edu"
-                className="w-full bg-white border border-slate-300 rounded-xl pl-9 pr-3 py-2.5 focus:outline-hidden focus:ring-2 focus:ring-brand-500"
+                className="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-9 pr-3 py-2.5 text-zinc-100 focus:outline-hidden focus:border-emerald-500"
               />
             </div>
           </div>
 
           <div>
-            <label className="block font-semibold text-slate-700 mb-1">Password</label>
+            <label className="block text-zinc-400 uppercase text-[10px] mb-1">
+              Password
+            </label>
             <div className="relative">
-              <KeyRound className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <KeyRound className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
               <input
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full bg-white border border-slate-300 rounded-xl pl-9 pr-3 py-2.5 focus:outline-hidden focus:ring-2 focus:ring-brand-500"
+                className="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-9 pr-3 py-2.5 text-zinc-100 focus:outline-hidden focus:border-emerald-500"
               />
             </div>
           </div>
 
           {isRegister && (
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">Role</label>
+              <label className="block text-zinc-400 uppercase text-[10px] mb-1">
+                Station Role
+              </label>
               <select
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
-                className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2.5 focus:outline-hidden focus:ring-2 focus:ring-brand-500"
+                className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-2.5 text-zinc-200 focus:outline-hidden focus:border-emerald-500"
               >
-                <option value="reporter">Student / Faculty Reporter</option>
-                <option value="admin">Operations / IT Administrator</option>
+                <option value="reporter">Reporter (Campus User / Student)</option>
+                <option value="technician">Field Operations Technician</option>
+                <option value="admin">Operations Administrator</option>
               </select>
             </div>
           )}
 
           {error && (
-            <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 flex items-center space-x-2">
-              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+            <div className="p-3 rounded-xl bg-rose-950/40 border border-rose-800 text-rose-300 text-xs flex items-center space-x-2">
+              <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0" />
               <span>{error}</span>
             </div>
           )}
@@ -198,17 +227,18 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-semibold text-sm shadow-md shadow-brand-500/25 transition disabled:opacity-50"
+            className="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold uppercase tracking-wider shadow-lg shadow-emerald-500/20 transition active:scale-[0.98] disabled:opacity-50 flex items-center justify-center space-x-1.5 pt-2"
           >
             {loading ? (
-              <span className="flex items-center justify-center space-x-1.5">
+              <>
                 <Loader2 className="w-4 h-4 animate-spin" />
                 <span>Authenticating...</span>
-              </span>
-            ) : isRegister ? (
-              "Complete Registration"
+              </>
             ) : (
-              "Sign In to VoiceOps"
+              <>
+                <span>{isRegister ? "Create Account" : "Access Station"}</span>
+                <ArrowRight className="w-4 h-4" />
+              </>
             )}
           </button>
         </form>

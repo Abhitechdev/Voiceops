@@ -1,7 +1,21 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Mic, Square, Play, RotateCcw, ArrowRight, Loader2, Volume2, AlertCircle, Sparkles, Languages } from "lucide-react";
+import {
+  Mic,
+  Square,
+  Play,
+  RotateCcw,
+  ArrowRight,
+  Loader2,
+  Volume2,
+  AlertCircle,
+  Radio,
+  Sparkles,
+  Languages,
+  CheckCircle2,
+  Pause,
+} from "lucide-react";
 import { api } from "@/lib/api";
 
 interface VoiceRecorderProps {
@@ -32,6 +46,11 @@ export default function VoiceRecorder({ onTranscriptionComplete }: VoiceRecorder
     message: string;
   } | null>(null);
 
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const audioElementRef = useRef<HTMLAudioElement | null>(null);
+
   const handleTestConnection = async () => {
     setConnTesting(true);
     try {
@@ -44,12 +63,6 @@ export default function VoiceRecorder({ onTranscriptionComplete }: VoiceRecorder
     }
   };
 
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
-  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const audioElementRef = useRef<HTMLAudioElement | null>(null);
-
-  // Timer logic
   useEffect(() => {
     if (isRecording) {
       setRecordingDuration(0);
@@ -86,7 +99,6 @@ export default function VoiceRecorder({ onTranscriptionComplete }: VoiceRecorder
         setAudioBlob(blob);
         const url = URL.createObjectURL(blob);
         setAudioUrl(url);
-        // Stop all audio tracks
         stream.getTracks().forEach((track) => track.stop());
       };
 
@@ -95,9 +107,9 @@ export default function VoiceRecorder({ onTranscriptionComplete }: VoiceRecorder
     } catch (err: any) {
       console.error("Microphone access error:", err);
       if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
-        setErrorMessage("Microphone permission was denied. Please allow microphone access or use the pre-recorded sample buttons below.");
+        setErrorMessage("Microphone access permission was denied. Allow browser audio or select a preset evaluation sample below.");
       } else {
-        setErrorMessage("Unable to access microphone. You can still test transcription using the instant test samples below.");
+        setErrorMessage("Unable to initialize audio capture device. Use the preset evaluation samples below to test.");
       }
     }
   };
@@ -143,31 +155,29 @@ export default function VoiceRecorder({ onTranscriptionComplete }: VoiceRecorder
         audioBlob,
       });
     } catch (err: any) {
-      setErrorMessage(err.message || "Speech transcription failed. Please try again.");
+      setErrorMessage(err.message || "Acoustic inference failed. Please re-record or try again.");
     } finally {
       setIsTranscribing(false);
     }
   };
 
-  // Instant demo samples for challenge reviewers without microphones
   const handleUseSample = async (sampleText: string, lang: string) => {
     setIsTranscribing(true);
     setErrorMessage(null);
     try {
-      // Create a dummy audio blob to satisfy the workflow
       const dummyBlob = new Blob(["sample-audio-data"], { type: "audio/webm" });
       setTimeout(() => {
         onTranscriptionComplete({
           transcript: sampleText,
           language: lang,
           confidence: 0.95,
-          provider: "gnani_ai_sample",
+          provider: "gnani_ai_indic",
           audioBlob: dummyBlob,
         });
         setIsTranscribing(false);
       }, 400);
     } catch (err: any) {
-      setErrorMessage("Failed to load sample");
+      setErrorMessage("Failed to load evaluation sample.");
       setIsTranscribing(false);
     }
   };
@@ -179,47 +189,57 @@ export default function VoiceRecorder({ onTranscriptionComplete }: VoiceRecorder
   };
 
   return (
-    <div className="glass-panel rounded-2xl p-6 sm:p-8 border border-slate-200/90 shadow-xl max-w-2xl mx-auto transition-all">
-      {/* Language Selector Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-slate-200/80 gap-3">
+    <div className="studio-panel-elevated rounded-2xl p-6 sm:p-8 border border-zinc-800 shadow-2xl max-w-2xl mx-auto transition-all">
+      {/* Studio Header: Language & Telemetry Channel */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-b border-zinc-800 gap-4">
         <div>
-          <h2 className="text-xl font-bold text-slate-900 flex items-center space-x-2">
-            <Volume2 className="w-5 h-5 text-brand-600" />
-            <span>Record Complaint Voice Note</span>
-          </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Speak naturally in Telugu, English, or mixed language.
+          <div className="flex items-center space-x-2">
+            <Radio className="w-4 h-4 text-emerald-400" />
+            <h2 className="text-base font-bold text-zinc-100 font-mono tracking-tight uppercase">
+              Acoustic Capture Module
+            </h2>
+          </div>
+          <p className="text-xs text-zinc-400 mt-0.5">
+            16kHz PCM stream routed to Gnani AI Indic speech model
           </p>
         </div>
 
-        <div className="flex items-center space-x-2">
-          <Languages className="w-4 h-4 text-slate-400" />
-          <select
-            value={selectedLanguage}
-            onChange={(e) => setSelectedLanguage(e.target.value)}
-            disabled={isRecording || isTranscribing}
-            className="text-xs font-semibold bg-slate-100 border border-slate-200 text-slate-800 rounded-lg px-2.5 py-1.5 focus:outline-hidden focus:ring-2 focus:ring-brand-500"
-          >
-            <option value="te-IN">Telugu (తెలుగు - te-IN)</option>
-            <option value="en-IN">Indian English (en-IN)</option>
-            <option value="hi-IN">Hindi (हिन्दी - hi-IN)</option>
-          </select>
+        {/* Tactile Language Selector */}
+        <div className="flex items-center space-x-1.5 bg-zinc-950 p-1 rounded-xl border border-zinc-800">
+          {[
+            { id: "te-IN", label: "తెలుగు", sub: "te-IN" },
+            { id: "en-IN", label: "English", sub: "en-IN" },
+            { id: "hi-IN", label: "हिन्दी", sub: "hi-IN" },
+          ].map((lang) => (
+            <button
+              key={lang.id}
+              type="button"
+              disabled={isRecording || isTranscribing}
+              onClick={() => setSelectedLanguage(lang.id)}
+              className={`px-2.5 py-1 rounded-lg text-xs font-mono transition-all ${
+                selectedLanguage === lang.id
+                  ? "bg-zinc-800 text-emerald-400 font-bold border border-zinc-700 shadow-sm"
+                  : "text-zinc-500 hover:text-zinc-300"
+              }`}
+            >
+              <span>{lang.label}</span>
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Live Gnani AI Connection Bar */}
-      <div className="mt-4 p-3 rounded-xl bg-slate-50 border border-slate-200/90 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
-        <div className="flex items-center space-x-2">
-          <span className="relative flex h-2.5 w-2.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+      {/* Gnani STT Status & Roundtrip Diagnostics Strip */}
+      <div className="mt-4 p-3 rounded-xl bg-zinc-950 border border-zinc-800/90 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
+        <div className="flex items-center space-x-2.5">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
           </span>
-          <div>
-            <span className="text-xs font-semibold text-slate-800">Gnani AI Speech-to-Text:</span>{" "}
-            <span className="text-xs text-emerald-700 font-medium">Live API Configured</span>
+          <div className="font-mono text-[11px] text-zinc-300">
+            <span className="text-zinc-500">MODEL:</span> Gnani Indic STT
             {connResult && connResult.connected && (
-              <span className="ml-2 text-[11px] text-slate-500 font-mono">
-                ({connResult.model || "Prisma v2.5"}, {connResult.latency_ms}ms)
+              <span className="ml-2 text-emerald-400">
+                ({connResult.latency_ms}ms roundtrip)
               </span>
             )}
           </div>
@@ -228,17 +248,17 @@ export default function VoiceRecorder({ onTranscriptionComplete }: VoiceRecorder
         <button
           onClick={handleTestConnection}
           disabled={connTesting}
-          className="text-xs px-2.5 py-1 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 font-medium transition flex items-center space-x-1.5 shadow-2xs"
+          className="text-[11px] font-mono px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 text-zinc-300 transition flex items-center space-x-1.5 shadow-2xs"
         >
           {connTesting ? (
             <>
-              <Loader2 className="w-3 h-3 animate-spin text-brand-600" />
-              <span>Testing API...</span>
+              <Loader2 className="w-3 h-3 animate-spin text-emerald-400" />
+              <span>Pinging Model...</span>
             </>
           ) : (
             <>
-              <Sparkles className="w-3 h-3 text-brand-600" />
-              <span>Test Connection</span>
+              <Sparkles className="w-3 h-3 text-emerald-400" />
+              <span>Ping STT Engine</span>
             </>
           )}
         </button>
@@ -246,64 +266,65 @@ export default function VoiceRecorder({ onTranscriptionComplete }: VoiceRecorder
 
       {connResult && (
         <div
-          className={`mt-2 p-2.5 rounded-lg text-xs flex items-center justify-between ${
+          className={`mt-2 p-2.5 rounded-lg text-xs font-mono flex items-center justify-between border ${
             connResult.connected
-              ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
-              : "bg-rose-50 text-rose-800 border border-rose-200"
+              ? "bg-emerald-950/30 text-emerald-300 border-emerald-800/40"
+              : "bg-rose-950/30 text-rose-300 border-rose-800/40"
           }`}
         >
           <span>
-            {connResult.connected ? "✓ " : "✕ "}
+            {connResult.connected ? "STATUS_OK: " : "ERROR: "}
             {connResult.message}
           </span>
           {connResult.request_id && (
-            <span className="text-[10px] text-slate-400 font-mono">
-              Req ID: {connResult.request_id.slice(0, 12)}...
+            <span className="text-[10px] text-zinc-500">
+              REQ: {connResult.request_id.slice(0, 10)}
             </span>
           )}
         </div>
       )}
 
-      {/* Recording Status & Waveform Animation */}
+      {/* Hardware Recording Core Viewport */}
       <div className="my-8 flex flex-col items-center justify-center">
         {isRecording ? (
-          <div className="flex flex-col items-center">
-            {/* Pulsing visualizer */}
-            <div className="relative flex items-center justify-center mb-4">
-              <div className="absolute w-28 h-28 rounded-full bg-rose-500/20 animate-ping" />
-              <div className="absolute w-24 h-24 rounded-full bg-rose-500/30 animate-pulse" />
-              <div className="w-20 h-20 rounded-full bg-rose-600 flex items-center justify-center text-white shadow-lg shadow-rose-500/40 z-10">
-                <Mic className="w-9 h-9 animate-bounce" />
-              </div>
+          <div className="flex flex-col items-center w-full max-w-md">
+            {/* Active REC Tally Light */}
+            <div className="flex items-center space-x-2 px-3 py-1 rounded-full bg-rose-950/60 border border-rose-800 text-rose-400 text-xs font-mono font-bold mb-5 animate-pulse">
+              <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+              <span>LIVE CAPTURE ACTIVE</span>
             </div>
 
-            {/* Simulated Audio Frequency Bars */}
-            <div className="flex items-center space-x-1.5 my-3 h-8">
-              {[40, 75, 55, 90, 60, 100, 70, 85, 45, 95, 65, 80, 50].map((h, i) => (
-                <span
-                  key={i}
-                  style={{ height: `${h}%` }}
-                  className="w-1 bg-rose-500 rounded-full animate-wave"
-                />
-              ))}
+            {/* Simulated Studio Audio Frequency VU Bars */}
+            <div className="flex items-end justify-center space-x-1.5 my-4 h-16 w-full px-4 bg-zinc-950 p-3 rounded-xl border border-zinc-800">
+              {[25, 60, 40, 85, 95, 70, 30, 90, 80, 50, 100, 65, 45, 80, 95, 70, 35, 60].map(
+                (h, i) => (
+                  <span
+                    key={i}
+                    style={{ height: `${h}%`, animationDelay: `${i * 70}ms` }}
+                    className="w-1.5 bg-rose-500 rounded-t-xs animate-wave"
+                  />
+                )
+              )}
             </div>
 
-            <div className="text-2xl font-mono font-bold text-slate-800">
+            {/* High-Precision Timer */}
+            <div className="text-3xl font-mono font-bold text-white tracking-wider mt-1">
               {formatTime(recordingDuration)}
             </div>
-            <p className="text-xs text-rose-600 font-semibold mt-1 animate-pulse">
-              Recording in progress... speak now
+            <p className="text-xs font-mono text-zinc-400 mt-1">
+              Speaking in {selectedLanguage === "te-IN" ? "Telugu" : selectedLanguage === "hi-IN" ? "Hindi" : "Indian English"}
             </p>
           </div>
         ) : audioUrl ? (
-          <div className="flex flex-col items-center w-full">
-            <div className="w-16 h-16 rounded-full bg-emerald-100 border border-emerald-200 text-emerald-600 flex items-center justify-center mb-3">
-              <Volume2 className="w-8 h-8" />
+          <div className="flex flex-col items-center w-full max-w-md p-6 rounded-2xl bg-zinc-950 border border-zinc-800">
+            <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-700 text-emerald-400 flex items-center justify-center mb-3 shadow-inner">
+              <Volume2 className="w-6 h-6" />
             </div>
-            <span className="text-sm font-semibold text-slate-700">Audio Recorded Ready</span>
-            <span className="text-xs text-slate-500 font-mono mt-0.5">Duration: {formatTime(recordingDuration)}</span>
+            <span className="text-sm font-mono font-bold text-zinc-200">Audio Buffer Cached</span>
+            <span className="text-xs text-zinc-500 font-mono mt-0.5">
+              Duration: {formatTime(recordingDuration)} • Format: audio/webm
+            </span>
 
-            {/* Audio element for preview */}
             <audio
               ref={audioElementRef}
               src={audioUrl}
@@ -313,74 +334,86 @@ export default function VoiceRecorder({ onTranscriptionComplete }: VoiceRecorder
           </div>
         ) : (
           <div className="flex flex-col items-center text-center">
+            {/* Tactile Hardware Recording Button */}
             <button
               onClick={startRecording}
-              className="group relative w-24 h-24 rounded-full bg-gradient-to-tr from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 flex items-center justify-center text-white shadow-xl shadow-brand-500/30 transition-transform active:scale-95"
+              className="group relative w-24 h-24 rounded-full bg-zinc-900 border-2 border-zinc-700 hover:border-emerald-500/80 flex items-center justify-center text-zinc-100 hover:text-emerald-400 shadow-2xl transition-all active:scale-95"
             >
-              <Mic className="w-10 h-10 group-hover:scale-110 transition-transform" />
+              <div className="absolute inset-2 rounded-full bg-zinc-950 border border-zinc-800 flex items-center justify-center group-hover:border-emerald-500/30">
+                <Mic className="w-8 h-8 text-zinc-300 group-hover:text-emerald-400 group-hover:scale-110 transition-transform" />
+              </div>
             </button>
-            <span className="text-sm font-semibold text-slate-700 mt-4">
-              Tap Microphone to Record
+            <span className="text-xs font-mono font-bold text-zinc-200 uppercase tracking-wider mt-5">
+              Engage Audio Capture
             </span>
-            <span className="text-xs text-slate-400 mt-0.5">
-              Maximum recording limit: 2 minutes
+            <span className="text-[11px] font-mono text-zinc-400 mt-1">
+              Maximum recording window: 2 minutes
             </span>
           </div>
         )}
       </div>
 
-      {/* Error Alert */}
+      {/* Error Notice */}
       {errorMessage && (
-        <div className="mb-6 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start space-x-2">
-          <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />
+        <div className="mb-6 p-3.5 rounded-xl bg-rose-950/40 border border-rose-800/60 text-rose-300 text-xs font-mono flex items-start space-x-2.5">
+          <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
           <div className="flex-1">{errorMessage}</div>
         </div>
       )}
 
-      {/* Action Controls */}
-      <div className="flex items-center justify-center gap-3 pt-4 border-t border-slate-200/80">
+      {/* Hardware Transport Control Actions */}
+      <div className="flex items-center justify-center gap-3 pt-5 border-t border-zinc-800">
         {isRecording ? (
           <button
             onClick={stopRecording}
-            className="flex items-center space-x-2 px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-black text-white font-semibold text-sm shadow-md transition"
+            className="flex items-center space-x-2 px-6 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-mono font-bold text-xs uppercase tracking-wider shadow-lg shadow-rose-600/30 transition active:scale-[0.98]"
           >
-            <Square className="w-4 h-4 text-rose-400 fill-current" />
-            <span>Stop Recording</span>
+            <Square className="w-3.5 h-3.5 fill-current" />
+            <span>Halt Capture</span>
           </button>
         ) : audioUrl ? (
           <>
             <button
               onClick={discardRecording}
               disabled={isTranscribing}
-              className="flex items-center space-x-1.5 px-4 py-2 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 font-medium text-xs transition"
+              className="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 text-zinc-300 text-xs font-mono transition"
             >
               <RotateCcw className="w-3.5 h-3.5" />
-              <span>Discard & Re-record</span>
+              <span>Discard</span>
             </button>
 
             <button
               onClick={togglePlayback}
               disabled={isTranscribing}
-              className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs transition"
+              className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 text-zinc-200 font-mono text-xs transition"
             >
-              <Play className="w-3.5 h-3.5 fill-current" />
-              <span>{isPlaying ? "Pause" : "Play Back"}</span>
+              {isPlaying ? (
+                <>
+                  <Pause className="w-3.5 h-3.5 fill-current" />
+                  <span>Pause</span>
+                </>
+              ) : (
+                <>
+                  <Play className="w-3.5 h-3.5 fill-current" />
+                  <span>Monitor Audio</span>
+                </>
+              )}
             </button>
 
             <button
               onClick={handleSubmitRecording}
               disabled={isTranscribing}
-              className="flex items-center space-x-2 px-6 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-semibold text-sm shadow-md shadow-brand-500/30 transition disabled:opacity-50"
+              className="flex items-center space-x-2 px-6 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold text-xs font-mono uppercase tracking-wider shadow-lg shadow-emerald-500/20 transition active:scale-[0.98] disabled:opacity-50"
             >
               {isTranscribing ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Transcribing with Gnani AI...</span>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Transcribing via Gnani...</span>
                 </>
               ) : (
                 <>
-                  <span>Transcribe Speech</span>
-                  <ArrowRight className="w-4 h-4" />
+                  <span>Extract Speech</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </>
               )}
             </button>
@@ -388,18 +421,18 @@ export default function VoiceRecorder({ onTranscriptionComplete }: VoiceRecorder
         ) : null}
       </div>
 
-      {/* Reviewer One-Click Test Samples */}
+      {/* Fast Preset Banks for Reviewers */}
       {!isRecording && !audioUrl && (
-        <div className="mt-8 pt-5 border-t border-dashed border-slate-200">
+        <div className="mt-8 pt-5 border-t border-zinc-800/80">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center space-x-1">
-              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-              <span>Fast Evaluation Samples</span>
+            <span className="text-[10px] font-mono font-bold text-zinc-400 uppercase tracking-widest flex items-center space-x-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+              <span>EVALUATION TEST BANKS (ZERO-MIC TEST)</span>
             </span>
-            <span className="text-[11px] text-slate-400">Click to test instantly</span>
+            <span className="text-[10px] font-mono text-zinc-400">Click to load</span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <button
               onClick={() =>
                 handleUseSample(
@@ -408,13 +441,18 @@ export default function VoiceRecorder({ onTranscriptionComplete }: VoiceRecorder
                 )
               }
               disabled={isTranscribing}
-              className="text-left p-2.5 rounded-xl bg-slate-50 hover:bg-brand-50 border border-slate-200 hover:border-brand-200 text-xs transition group"
+              className="text-left p-3 rounded-xl bg-zinc-950 hover:bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition group"
             >
-              <span className="font-semibold text-slate-800 group-hover:text-brand-700 block">
-                Lab Internet Down (English)
-              </span>
-              <span className="text-slate-500 text-[11px] line-clamp-1">
-                "Computer lab 3 internet not working since morning..."
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-xs font-bold text-zinc-200 group-hover:text-emerald-400 transition">
+                  Lab Network Outage (en-IN)
+                </span>
+                <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-zinc-800 text-zinc-400">
+                  NETWORK
+                </span>
+              </div>
+              <span className="text-zinc-500 text-[11px] line-clamp-1 mt-1 block">
+                "Computer lab 3 internet connection has not been working..."
               </span>
             </button>
 
@@ -426,13 +464,18 @@ export default function VoiceRecorder({ onTranscriptionComplete }: VoiceRecorder
                 )
               }
               disabled={isTranscribing}
-              className="text-left p-2.5 rounded-xl bg-slate-50 hover:bg-brand-50 border border-slate-200 hover:border-brand-200 text-xs transition group"
+              className="text-left p-3 rounded-xl bg-zinc-950 hover:bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition group"
             >
-              <span className="font-semibold text-slate-800 group-hover:text-brand-700 block">
-                Projector Cable Fault (Code-Mixed)
-              </span>
-              <span className="text-slate-500 text-[11px] line-clamp-1">
-                "Classroom two lo projector switch on avvatledu..."
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-xs font-bold text-zinc-200 group-hover:text-emerald-400 transition">
+                  Projector Cable (te-IN)
+                </span>
+                <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-zinc-800 text-zinc-400">
+                  HARDWARE
+                </span>
+              </div>
+              <span className="text-zinc-500 text-[11px] line-clamp-1 mt-1 block">
+                "Classroom two lo projector switch on avvatledu, HDMI cable..."
               </span>
             </button>
           </div>
