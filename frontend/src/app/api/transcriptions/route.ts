@@ -2,11 +2,13 @@ import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-const GNANI_API_KEY = process.env.GNANI_API_KEY || "";
+const GNANI_API_KEY =
+  process.env.GNANI_API_KEY ||
+  "vach_1ytE2CY5X2DTeVZrAmBPAeUypWsZVrRl8eXvcE5fqseJNGTtRhRQP8JDEXM2NzxZ7YsPYQcyGIXixH1dOwa7wRca6HnmlJHa_eacd2bc7432795a4224a147eb8ae325e";
 const GNANI_API_ENDPOINT =
   process.env.GNANI_API_ENDPOINT || "https://api.vachana.ai/stt/v3";
 const GNANI_MOCK_MODE =
-  process.env.GNANI_MOCK_MODE?.toLowerCase() === "true" || !GNANI_API_KEY;
+  process.env.GNANI_MOCK_MODE?.toLowerCase() === "true";
 
 const EVALUATION_SAMPLES = [
   {
@@ -130,3 +132,4 @@ export async function POST(req: Request) {
     );
   }
 }
+
