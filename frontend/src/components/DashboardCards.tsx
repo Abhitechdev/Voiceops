@@ -11,49 +11,49 @@ interface DashboardCardsProps {
 export default function DashboardCards({ analytics }: DashboardCardsProps) {
   const cards = [
     {
-      title: "TOTAL DISPATCHES",
+      title: "Total Tickets",
       value: analytics.total_tickets,
-      subtitle: "Lifetime indexed reports",
+      subtitle: "All recorded campus issues",
       icon: Ticket,
       accent: "text-zinc-100",
-      diode: "bg-zinc-500",
+      diode: "bg-emerald-500",
     },
     {
-      title: "PENDING TRIAGE",
+      title: "Under Review",
       value: analytics.open_tickets,
-      subtitle: "Awaiting technician",
+      subtitle: "Awaiting inspection",
       icon: AlertCircle,
       accent: "text-amber-400",
-      diode: "bg-amber-500 animate-pulse",
+      diode: "bg-amber-500",
     },
     {
-      title: "IN ACTIVE REPAIR",
+      title: "In Progress",
       value: analytics.in_progress_tickets,
-      subtitle: "Technicians in field",
+      subtitle: "Technicians on site",
       icon: PlayCircle,
       accent: "text-sky-400",
       diode: "bg-sky-500",
     },
     {
-      title: "RESOLVED / CLOSED",
+      title: "Resolved Issues",
       value: analytics.resolved_tickets + analytics.closed_tickets,
-      subtitle: "Verified completions",
+      subtitle: "Successfully repaired",
       icon: CheckCircle2,
       accent: "text-emerald-400",
       diode: "bg-emerald-500",
     },
     {
-      title: "SLA OVERDUE",
+      title: "Overdue (>48h)",
       value: analytics.overdue_tickets,
-      subtitle: `Past ${analytics.sla_target_hours}h target`,
+      subtitle: `Target: ${analytics.sla_target_hours}h`,
       icon: AlertTriangle,
       accent: analytics.overdue_tickets > 0 ? "text-rose-400" : "text-zinc-400",
-      diode: analytics.overdue_tickets > 0 ? "bg-rose-500 animate-ping" : "bg-zinc-700",
+      diode: analytics.overdue_tickets > 0 ? "bg-rose-500 animate-pulse" : "bg-zinc-700",
     },
     {
-      title: "MEAN TURNAROUND",
+      title: "Avg. Turnaround",
       value: `${analytics.avg_resolution_hours}h`,
-      subtitle: "Intake to resolution",
+      subtitle: "Mean repair time",
       icon: Clock,
       accent: "text-emerald-300",
       diode: "bg-emerald-500",
@@ -61,26 +61,26 @@ export default function DashboardCards({ analytics }: DashboardCardsProps) {
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3.5">
       {cards.map((card) => {
         const Icon = card.icon;
         return (
           <div
             key={card.title}
-            className="studio-panel p-4 rounded-xl border border-zinc-800 flex flex-col justify-between space-y-3"
+            className="bg-zinc-900/80 backdrop-blur-xl p-4 sm:p-5 rounded-2xl border border-zinc-800 flex flex-col justify-between space-y-3 shadow-md"
           >
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-400">
+              <span className="text-xs font-semibold text-zinc-400">
                 {card.title}
               </span>
-              <span className={`w-1.5 h-1.5 rounded-full ${card.diode}`}></span>
+              <span className={`w-2 h-2 rounded-full ${card.diode}`}></span>
             </div>
 
             <div>
-              <div className={`text-2xl font-mono font-bold tracking-tight ${card.accent}`}>
+              <div className={`text-2xl font-bold tracking-tight ${card.accent}`}>
                 {card.value}
               </div>
-              <p className="text-[10px] font-mono text-zinc-400 mt-0.5 truncate">
+              <p className="text-[11px] text-zinc-500 mt-0.5 truncate">
                 {card.subtitle}
               </p>
             </div>

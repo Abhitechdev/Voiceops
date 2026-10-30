@@ -232,14 +232,17 @@ export const api = {
     search?: string;
     limit?: number;
   } = {}) {
-    const url = new URL(`${API_BASE}/tickets`);
-    if (params.status && params.status !== "All") url.searchParams.append("status", params.status);
-    if (params.category && params.category !== "All") url.searchParams.append("category", params.category);
-    if (params.priority && params.priority !== "All") url.searchParams.append("priority", params.priority);
-    if (params.search) url.searchParams.append("search", params.search);
-    if (params.limit) url.searchParams.append("limit", params.limit.toString());
+    const query = new URLSearchParams();
+    if (params.status && params.status !== "All") query.append("status", params.status);
+    if (params.category && params.category !== "All") query.append("category", params.category);
+    if (params.priority && params.priority !== "All") query.append("priority", params.priority);
+    if (params.search && params.search.trim()) query.append("search", params.search.trim());
+    if (params.limit) query.append("limit", params.limit.toString());
 
-    const res = await fetch(url.toString(), {
+    const qs = query.toString();
+    const endpoint = `${API_BASE}/tickets${qs ? `?${qs}` : ""}`;
+
+    const res = await fetch(endpoint, {
       headers: { ...getAuthHeader() },
     });
     if (!res.ok) throw new Error("Failed to load tickets");
