@@ -77,8 +77,8 @@ export async function PATCH(
     // Lookup existing ticket
     const isNum = /^\d+$/.test(ident);
     const existing = isNum
-      ? await sql`SELECT * FROM tickets WHERE id = ${parseInt(ident, 10)} LIMIT 1;`
-      : await sql`SELECT * FROM tickets WHERE ticket_number ILIKE ${ident} LIMIT 1;`;
+      ? await sql`SELECT id, ticket_number, status, priority FROM tickets WHERE id = ${parseInt(ident, 10)} LIMIT 1;`
+      : await sql`SELECT id, ticket_number, status, priority FROM tickets WHERE ticket_number ILIKE ${ident} LIMIT 1;`;
 
     if (existing.length === 0) {
       return NextResponse.json(
@@ -104,7 +104,7 @@ export async function PATCH(
         assigned_to = COALESCE(${assigned_to !== undefined ? assigned_to : null}, assigned_to),
         assignee_name = COALESCE(${assignee_name || null}, assignee_name),
         resolution_notes = COALESCE(${resolution_notes !== undefined ? resolution_notes : null}, resolution_notes),
-        resolved_at = CASE WHEN ${isResolving} THEN NOW() ELSE resolved_at END,
+        resolved_at = CASE WHEN ${isResolving ? 1 : 0} = 1 THEN NOW() ELSE resolved_at END,
         updated_at = NOW()
       WHERE id = ${ticket.id}
       RETURNING *;
